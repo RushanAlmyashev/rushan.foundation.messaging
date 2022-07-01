@@ -5,11 +5,11 @@ using System.Text;
 
 namespace Foundation.Messaging.Reciever
 {
-    public class PublisherConsoleTest : IReciever
+    public class Reciever : IReciever
     {
         private readonly ConnectionFactory _connectionFactory;
 
-        public PublisherConsoleTest()
+        public Reciever()
         {
             _connectionFactory = new ConnectionFactory()
             {

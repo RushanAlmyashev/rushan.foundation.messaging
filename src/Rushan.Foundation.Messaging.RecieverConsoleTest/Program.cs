@@ -1,4 +1,4 @@
-﻿using Foundation.Messaging.Publisher;
+﻿using Foundation.Messaging.Reciever;
 using System;
 
 namespace RecieverConsoleTest
@@ -7,8 +7,8 @@ namespace RecieverConsoleTest
     {
         static void Main(string[] args)
         {
-            var reciever = new Publisher();
-            reciever.Publish();
+            var reciever = new Reciever();
+            reciever.Recieve();
 
             Console.WriteLine(" Press [enter] to exit.");
             Console.ReadLine();
