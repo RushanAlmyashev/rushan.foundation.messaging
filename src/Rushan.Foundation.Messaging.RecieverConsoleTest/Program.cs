@@ -1,5 +1,8 @@
-﻿using Foundation.Messaging.Reciever;
+﻿using Rushan.Foundation.Messaging.Configuration;
+using Rushan.Foundation.Messaging;
 using System;
+using Rushan.Foundation.Messaging.Shared;
+using Rushan.Foundation.Messaging.RecieverConsoleTest;
 
 namespace RecieverConsoleTest
 {
@@ -7,10 +10,28 @@ namespace RecieverConsoleTest
     {
         static void Main(string[] args)
         {
-            var reciever = new Reciever();
-            reciever.Recieve();
+            var configuration = new MessagingConfiguration
+            {
+                Exchange = "amq.topic",
+                MessageBrokerUri = "amqp://guest:guest@localhost:5672",
+            };
+
+            var rabbitmq = new RabbitMqMessageBus(configuration);
+            rabbitmq.Subscribe(new DummyReciever());
+            rabbitmq.StartMessageBus();
+
+            var dummyMessage = new Dummy
+            {
+                Id = 5,
+                Key = Guid.NewGuid(),
+                Name = "Hello Istambul!",
+                Value = DateTime.UtcNow
+            };
+
+            rabbitmq.Publish(dummyMessage);
 
             Console.WriteLine(" Press [enter] to exit.");
+
             Console.ReadLine();
         }
     }

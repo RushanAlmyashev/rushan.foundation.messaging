@@ -12,22 +12,28 @@ namespace Rushan.Foundation.Messaging.Persistence
     internal class RabbitMQConnectionPersistence: IRabbitMQConnection
     {
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
-        
-        private IConnection _connection => _lazyConnection.Value;
 
-        
-        private readonly ILogger _logger;
-        private readonly Lazy<IConnection> _lazyConnection;                
+        private ILogger _logger;
+        private string _connectionString;
+
+        private static IConnection _connection = null;
 
 
-        public RabbitMQConnectionPersistence(string connectionString, ILogger logger)
+        internal RabbitMQConnectionPersistence() { }
+
+        public RabbitMQConnectionPersistence(string messageBrokerUri, ILogger logger)
         {
-            _lazyConnection = new Lazy<IConnection>(() => ConnectToRabbitMQ(connectionString));
+            _connectionString = messageBrokerUri;
             _logger = logger;
         }
 
-        public IConnection Connection => _connection;        
-        
+
+        public IConnection Connection => _connection;
+
+        public void Start()
+        {
+            _connection = ConnectToRabbitMQ(_connectionString);            
+        }
 
         public void Stop()
         {
@@ -36,12 +42,23 @@ namespace Rushan.Foundation.Messaging.Persistence
 
 
         private IConnection ConnectToRabbitMQ(string connectionString)
-        {
+        {            
             _semaphoreSlim.Wait();
 
             try
             {
-                if (_lazyConnection.IsValueCreated && _connection.IsOpen)
+                if (_logger == null)
+                {
+                    throw new NullReferenceException("_logger is not difined in 'RabbitMQConnectionPersistence'");
+                }
+
+                if (string.IsNullOrEmpty(connectionString))
+                {
+                    _logger.Error($"connectionString is not defined");
+                }
+                
+
+                if (_connection != null && _connection.IsOpen)
                 {
                     _logger.Warn("RabbitMQ connection is already open");
 
@@ -55,9 +72,9 @@ namespace Rushan.Foundation.Messaging.Persistence
                 var connectionFactory = new ConnectionFactory();
 
                 connectionFactory.Uri = new Uri(connectionString);
+                connectionFactory.DispatchConsumersAsync = true;
                 connectionFactory.AutomaticRecoveryEnabled = true;
                 connectionFactory.NetworkRecoveryInterval = TimeSpan.FromSeconds(5);
-
 
                 var connection = connectionFactory.CreateConnection() as IAutorecoveringConnection;
 
