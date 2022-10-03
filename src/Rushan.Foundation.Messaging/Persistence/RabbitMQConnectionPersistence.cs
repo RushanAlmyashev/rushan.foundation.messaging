@@ -1,7 +1,11 @@
-﻿using RabbitMQ.Client;
+﻿using Polly;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using Rushan.Foundation.Messaging.Logger;
 using System;
+using System.Net.Sockets;
+using System.Runtime;
 using System.Threading;
 
 namespace Rushan.Foundation.Messaging.Persistence
@@ -9,12 +13,13 @@ namespace Rushan.Foundation.Messaging.Persistence
     /// <summary>
     /// Provide persistant connection to rabbitMQ bus
     /// </summary>
-    internal class RabbitMQConnectionPersistence: IRabbitMQConnection
+    internal class RabbitMQConnectionPersistence : IRabbitMQConnection
     {
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+        private const int CONNECTION_RETRY_COUNT = 5;
 
         private ILogger _logger;
-        private string _connectionString;
+        private string _messageBrokerUri;
 
         private static IConnection _connection = null;
 
@@ -23,16 +28,26 @@ namespace Rushan.Foundation.Messaging.Persistence
 
         public RabbitMQConnectionPersistence(string messageBrokerUri, ILogger logger)
         {
-            _connectionString = messageBrokerUri;
+            _messageBrokerUri = Environment.ExpandEnvironmentVariables(messageBrokerUri);
             _logger = logger;
         }
 
+        private bool IsConnected => _connection != default
+                                    && _connection.IsOpen;
 
-        public IConnection Connection => _connection;
+        public IConnection GetConnection()
+        {
+            if (!IsConnected)
+            {
+                ConnectToRabbitMQ();
+            }
+
+            return _connection;
+        }
 
         public void Start()
         {
-            _connection = ConnectToRabbitMQ(_connectionString);            
+            ConnectToRabbitMQ();            
         }
 
         public void Stop()
@@ -41,50 +56,70 @@ namespace Rushan.Foundation.Messaging.Persistence
         }
 
 
-        private IConnection ConnectToRabbitMQ(string connectionString)
-        {            
+        private void ConnectToRabbitMQ()
+        {
+            if (IsConnected)
+            {
+                return;
+            }
+
             _semaphoreSlim.Wait();
 
             try
             {
+                if (IsConnected)
+                {
+                    return;
+                }
+
                 if (_logger == null)
                 {
                     throw new NullReferenceException("_logger is not difined in 'RabbitMQConnectionPersistence'");
                 }
 
-                if (string.IsNullOrEmpty(connectionString))
+                if (string.IsNullOrEmpty(_messageBrokerUri))
                 {
                     _logger.Error($"connectionString is not defined");
                 }
-                
 
-                if (_connection != null && _connection.IsOpen)
-                {
-                    _logger.Warn("RabbitMQ connection is already open");
-
-                    return _connection;
-                }
-
-                connectionString = Environment.ExpandEnvironmentVariables(connectionString);
-                _logger.Info($"Initializing connection to rabbitMQ via {connectionString}");
+                _logger.Info($"Initializing connection to rabbitMQ via {_messageBrokerUri}");
 
 
                 var connectionFactory = new ConnectionFactory();
 
-                connectionFactory.Uri = new Uri(connectionString);
+                connectionFactory.Uri = new Uri(_messageBrokerUri);
                 connectionFactory.DispatchConsumersAsync = true;
                 connectionFactory.AutomaticRecoveryEnabled = true;
                 connectionFactory.NetworkRecoveryInterval = TimeSpan.FromSeconds(5);
 
-                var connection = connectionFactory.CreateConnection() as IAutorecoveringConnection;
+                var policy = Policy.Handle<SocketException>()
+                    .Or<BrokerUnreachableException>()
+                    .WaitAndRetry(CONNECTION_RETRY_COUNT,
+                        retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                        (ex, time) =>
+                        {
+                            _logger.Error(ex, "Connection error.");
+                        });
 
-                connection.ConnectionBlocked += OnConnectionBlocked;
-                connection.CallbackException += OnCallbackException;
-                connection.ConnectionRecoveryError += OnRecoveryError;
-                connection.RecoverySucceeded += OnRecoverySucceeded;
-                connection.ConnectionShutdown += OnConnectionShutdown;
+                policy.Execute(() =>
+                {
+                    _connection = connectionFactory.CreateConnection();
+                });
 
-                return connection;
+                if (_connection.IsOpen == false)
+                {
+                    return;
+                }
+
+                _connection.CallbackException += OnCallbackException;
+                _connection.ConnectionBlocked += OnConnectionBlocked;
+                _connection.ConnectionShutdown += OnConnectionShutdown;
+
+                return;
+            }
+            catch(Exception ex)
+            {
+                _logger.Error(ex, "Connection failed.");
             }
             finally
             {
@@ -93,19 +128,22 @@ namespace Rushan.Foundation.Messaging.Persistence
         }
 
 
-        private void OnConnectionBlocked(object sender, ConnectionBlockedEventArgs e) => 
-            _logger.Warn($"An error occurred on connection to RabbitMQ by reason: '{e.Reason}'");
-
-        private void OnCallbackException(object sender, CallbackExceptionEventArgs e) =>
+        private void OnCallbackException(object sender, CallbackExceptionEventArgs e)
+        {
             _logger.Error(e.Exception, "An error occurred on callback in RabbitMQ");
+            ConnectToRabbitMQ();
+        }
 
-        private void OnConnectionShutdown(object sender, ShutdownEventArgs e) =>         
+        private void OnConnectionShutdown(object sender, ShutdownEventArgs e)
+        {            
             _logger.Warn($"RabbitMQ connection shutting down by reason: {e.ReplyText}, details: {e}");
+            ConnectToRabbitMQ();
+        }
 
-        private void OnRecoverySucceeded(object sender, EventArgs e) =>
-            _logger.Info($"RabbitMQ connection recovered");
-
-        private void OnRecoveryError(object sender, ConnectionRecoveryErrorEventArgs e) =>
-            _logger.Error(e.Exception, $"RabbitMQ connection recovery operation failed");
+        private void OnConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
+        {
+            _logger.Warn($"Connection is blocked by reason '{e.Reason}'");
+            ConnectToRabbitMQ();
+        }
     }
 }

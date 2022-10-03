@@ -7,7 +7,7 @@ namespace Rushan.Foundation.Messaging.Persistence
         /// <summary>
         /// Get persistence connection 
         /// </summary>
-        IConnection Connection { get; }
+        IConnection GetConnection();
         
         /// <summary>
         /// Initialize connectinon Persistance

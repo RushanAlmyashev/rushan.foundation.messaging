@@ -1,4 +1,5 @@
-﻿using Rushan.Foundation.Messaging.Configuration;
+﻿using Rushan.Foundation.Messaging.Channel;
+using Rushan.Foundation.Messaging.Configuration;
 using Rushan.Foundation.Messaging.Enums;
 using Rushan.Foundation.Messaging.Logger;
 using Rushan.Foundation.Messaging.Persistence;
@@ -14,9 +15,8 @@ namespace Rushan.Foundation.Messaging
     {
         private BusState _state = BusState.Stopped;
 
-
         private readonly IRabbitMQConnection _rabbitMQConnection;
-        private readonly IChanelFactory _chanelFactory;
+        private readonly IChannelFactory _chanelFactory;
         
         private readonly ISerializer _serializer;
         private readonly ILogger _logger;
@@ -34,7 +34,7 @@ namespace Rushan.Foundation.Messaging
             _serializer = serializer ?? new JsonMessageSerializer();
 
             _rabbitMQConnection = new RabbitMQConnectionPersistence(messagingConfiguration.MessageBrokerUri, _logger);
-            _chanelFactory = new ChanelFactory(_rabbitMQConnection, messagingConfiguration.Qos);
+            _chanelFactory = new ChannelFactory(_rabbitMQConnection, messagingConfiguration.Qos);
 
             _publisher = new Publisher(messagingConfiguration, _chanelFactory, _serializer, _logger);
             _consumer = new Consumer(messagingConfiguration, _chanelFactory, _serializer, _logger);

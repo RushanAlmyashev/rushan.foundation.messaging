@@ -5,9 +5,9 @@ VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rushan.Foundation.Messaging", "Rushan.Foundation.Messaging\Rushan.Foundation.Messaging.csproj", "{4A83CA56-83A8-491F-B7A8-741C823511EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rushan.Foundation.Messaging.RecieverConsoleTest", "Rushan.Foundation.Messaging.RecieverConsoleTest\Rushan.Foundation.Messaging.RecieverConsoleTest.csproj", "{533FAB3E-E482-4A97-9448-BE60E463BC52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rushan.Foundation.Messaging.Integration.Tests", "Rushan.Foundation.Messaging.Integration.Test\Rushan.Foundation.Messaging.Integration.Tests.csproj", "{66D9362D-C49A-4B0E-B1D5-7DB4AE84CCB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rushan.Foundation.Messaging.PublisherConsoleTest", "Rushan.Foundation.Messaging.PublisherConsoleTest\Rushan.Foundation.Messaging.PublisherConsoleTest.csproj", "{7E9EDDCE-7BE5-4D4D-BCC1-D05E41F7B74D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rushan.Foundation.Messaging.Tests", "Rushan.Foundation.Messaging.Tests\Rushan.Foundation.Messaging.Tests.csproj", "{E9C558F3-84AC-4F7C-BD73-04D5B58CD329}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +19,14 @@ Global
 		{4A83CA56-83A8-491F-B7A8-741C823511EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A83CA56-83A8-491F-B7A8-741C823511EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A83CA56-83A8-491F-B7A8-741C823511EB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{533FAB3E-E482-4A97-9448-BE60E463BC52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{533FAB3E-E482-4A97-9448-BE60E463BC52}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{533FAB3E-E482-4A97-9448-BE60E463BC52}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{533FAB3E-E482-4A97-9448-BE60E463BC52}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7E9EDDCE-7BE5-4D4D-BCC1-D05E41F7B74D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7E9EDDCE-7BE5-4D4D-BCC1-D05E41F7B74D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7E9EDDCE-7BE5-4D4D-BCC1-D05E41F7B74D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7E9EDDCE-7BE5-4D4D-BCC1-D05E41F7B74D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66D9362D-C49A-4B0E-B1D5-7DB4AE84CCB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66D9362D-C49A-4B0E-B1D5-7DB4AE84CCB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66D9362D-C49A-4B0E-B1D5-7DB4AE84CCB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66D9362D-C49A-4B0E-B1D5-7DB4AE84CCB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9C558F3-84AC-4F7C-BD73-04D5B58CD329}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9C558F3-84AC-4F7C-BD73-04D5B58CD329}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9C558F3-84AC-4F7C-BD73-04D5B58CD329}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9C558F3-84AC-4F7C-BD73-04D5B58CD329}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

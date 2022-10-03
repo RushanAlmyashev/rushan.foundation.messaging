@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client;
+using Rushan.Foundation.Messaging.Channel;
 using Rushan.Foundation.Messaging.Configuration;
 using Rushan.Foundation.Messaging.Enums;
 using Rushan.Foundation.Messaging.Helpers;
@@ -12,13 +13,13 @@ namespace Rushan.Foundation.Messaging.Publish
     {
         private const byte DELIVERY_MODE = (byte)DeliveryMode.Persistent;
 
-        private readonly IChanelFactory _chanelFactory;
+        private readonly IChannelFactory _chanelFactory;
         private readonly ISerializer _serializer;
         private readonly ILogger _logger;
         private readonly string _exchange;
 
         public Publisher(MessagingConfiguration messagingConfiguration,
-            IChanelFactory chanelFactory,
+            IChannelFactory chanelFactory,
             ISerializer serializer,
             ILogger logger)
         {
@@ -30,7 +31,7 @@ namespace Rushan.Foundation.Messaging.Publish
 
         public void Publish<TMessage>(TMessage message)
         {
-            using (var chanel = _chanelFactory.GetRabbitMQChanel())
+            using (var chanel = _chanelFactory.GetRabbitMQChannel())
             {
                 var routingKey = message.GetType().FullName.ToLowerInvariant();
 

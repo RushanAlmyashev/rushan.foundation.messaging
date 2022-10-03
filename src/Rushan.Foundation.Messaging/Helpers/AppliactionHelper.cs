@@ -4,21 +4,21 @@ using System.Reflection;
 
 namespace Rushan.Foundation.Messaging.Helpers
 {
-    internal static class ApplicationHelper
+    public static class ApplicationHelper
     {
-        internal static string GetApplicationName()
+        public static string GetApplicationName()
         {
-            var executedAssembly = Assembly.GetExecutingAssembly();
+            var entryAssembly =  Assembly.GetEntryAssembly();
 
-            if (executedAssembly == null)
+            if (entryAssembly == null)
                 return null;
 
             string version = null;
 
-            var versionInfo = FileVersionInfo.GetVersionInfo(executedAssembly.Location);
+            var versionInfo = FileVersionInfo.GetVersionInfo(entryAssembly.Location);
 
             var assemblyInformationalVersion =
-                (AssemblyInformationalVersionAttribute)executedAssembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false).
+                (AssemblyInformationalVersionAttribute)entryAssembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false).
                     SingleOrDefault();
 
             if (assemblyInformationalVersion != null)
@@ -29,10 +29,9 @@ namespace Rushan.Foundation.Messaging.Helpers
                     version = versionInfo.FileVersion;
             }
 
-            var applicationName =
-                version == null ?
-                    versionInfo.ProductName :
-                    string.Format("{0} v{1}", versionInfo.ProductName, version);
+            var applicationName = version == null ?
+                versionInfo.ProductName :
+                $"{versionInfo.ProductName} v{version}";
 
             return applicationName;
         }

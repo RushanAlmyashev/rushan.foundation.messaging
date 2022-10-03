@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Rushan.Foundation.Messaging.Channel;
 using Rushan.Foundation.Messaging.Configuration;
 using Rushan.Foundation.Messaging.Helpers;
 using Rushan.Foundation.Messaging.Logger;
@@ -13,14 +14,14 @@ namespace Rushan.Foundation.Messaging.Recieve
     {        
         private IModel _model;
 
-        private readonly IChanelFactory _chanelFactory;
+        private readonly IChannelFactory _chanelFactory;
         private readonly ISerializer _serializer;
         private readonly ILogger _logger;
         private readonly string _exchangeName;
         private readonly string _authLogin;
 
         internal Consumer(MessagingConfiguration messagingConfiguration,
-            IChanelFactory chanelFactory,
+            IChannelFactory chanelFactory,
             ISerializer serializer,
             ILogger logger)
         {
@@ -84,7 +85,7 @@ namespace Rushan.Foundation.Messaging.Recieve
             {
                 if (_model == default)
                 {
-                    _model = _chanelFactory.GetRabbitMQChanel();                    
+                    _model = _chanelFactory.GetRabbitMQChannel();                    
                 }
 
                 if (!_model.IsClosed)

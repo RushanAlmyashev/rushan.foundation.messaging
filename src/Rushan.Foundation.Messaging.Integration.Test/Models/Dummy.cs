@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Rushan.Foundation.Messaging.Shared
+namespace Rushan.Foundation.Messaging.Integration.Tests.Models
 {
     public class Dummy
     {
