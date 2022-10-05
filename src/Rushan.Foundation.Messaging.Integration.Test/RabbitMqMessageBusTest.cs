@@ -14,8 +14,8 @@ namespace Rushan.Foundation.Messaging.Integration.Tests
     public class RabbitMqMessageBusTest
     {
         private const int NumberOfMessageOne = 8;
-        private const int NumberOfMessageTwo = 722;
-        private const int NumberOfMessageThree = 5000;
+        private const int NumberOfMessageTwo = 7322;
+        private const int NumberOfMessageThree = 100000;
 
         private RabbitMqMessageBus _target;
 

@@ -1,7 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0;net6.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Rushan.Foundation.Messaging</PackageId>
+    <Version>$(VersionSuffix)</Version>
+    <Authors>Rushan Almyashev</Authors>
+    <PackageTags>rushan;messaging;rabbitmq;</PackageTags>
+    <Product>Rushan.Foundation.Messaging</Product>
+    <Description>Interaction with rabbitMQ brocker</Description>
+    <AssemblyName>Rushan.Foundation.Messaging</AssemblyName>
+    <RootNamespace>Rushan.Foundation.Messaging</RootNamespace>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageProjectUrl>https://github.com/RushanAlmyashev/rushan.foundation.messaging</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
