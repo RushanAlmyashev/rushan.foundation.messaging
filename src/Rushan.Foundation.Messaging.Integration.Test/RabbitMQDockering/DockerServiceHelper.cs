@@ -3,7 +3,7 @@ using Docker.DotNet.Models;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 
-namespace Rushan.Foundation.Messaging.Integration.Tests.Utils
+namespace Rushan.Foundation.Messaging.Integration.Tests.RabbitMQDockering
 {
     internal class DockerServiceHelper
     {
@@ -80,7 +80,7 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Utils
 
                 if (await helper.IsContainerRunning(containerId))
                 {
-                    await client.Containers.PauseContainerAsync(containerId);                    
+                    await client.Containers.PauseContainerAsync(containerId);
                 }
             }
         }

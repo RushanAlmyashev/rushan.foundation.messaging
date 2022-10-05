@@ -1,5 +1,5 @@
 ﻿using Moq;
-using Rushan.Foundation.Messaging.Integration.Tests.Utils;
+using Rushan.Foundation.Messaging.Integration.Tests.RabbitMQDockering;
 using Rushan.Foundation.Messaging.Logger;
 using Rushan.Foundation.Messaging.Persistence;
 
@@ -8,7 +8,7 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Persistence
     [Category("Integration")]
     [Category("LongRunning")]
     [NonParallelizable]
-    public class RabbitMQConnectionPersistenceTests
+    public class RabbitMQPersistenceTests
     {
         private IRabbitMQConnection _target;
 
@@ -27,7 +27,7 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Persistence
         [TearDown]
         public void TearDown()
         {
-            _target.Stop();
+            _target.Disconnect();
         }
 
 
@@ -40,20 +40,17 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Persistence
         }
 
         [Test]
-        public async Task WhenBrockerShuttingDown_ConnectionTryingRestore()
+        public async Task WhenBrockerRestarted_ConnectionRestored()
         {
             var actualBeforeWaiting = _target.GetConnection().IsOpen;
 
             await DockerServiceHelper.StopContainerAsync();
-
-            var actualOnWaiting = _target.GetConnection().IsOpen;
 
             await DockerServiceHelper.StartContainerAsync();
 
             var actualAfterWaiting = _target.GetConnection().IsOpen;
 
             Assert.IsTrue(actualBeforeWaiting);
-            Assert.IsFalse(actualOnWaiting);
             Assert.IsTrue(actualAfterWaiting);
         }
     }

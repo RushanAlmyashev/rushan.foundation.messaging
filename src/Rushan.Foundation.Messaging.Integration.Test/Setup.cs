@@ -1,7 +1,7 @@
 ﻿global using NUnit.Framework;
 
 using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
-using Rushan.Foundation.Messaging.Integration.Tests.Utils;
+using Rushan.Foundation.Messaging.Integration.Tests.RabbitMQDockering;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

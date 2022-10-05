@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Rushan.Foundation.Messaging.Tests.Models
+﻿namespace Rushan.Foundation.Messaging.Integration.Tests.Application.Models
 {
     public class Dummy
     {

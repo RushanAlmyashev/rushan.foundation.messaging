@@ -1,68 +1,72 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using Rushan.Foundation.Messaging.Channel;
-using Rushan.Foundation.Messaging.Configuration;
+using Rushan.Foundation.Messaging.Activator;
+using Rushan.Foundation.Messaging.Exceptions;
 using Rushan.Foundation.Messaging.Helpers;
 using Rushan.Foundation.Messaging.Logger;
-using Rushan.Foundation.Messaging.Serialization;
+using Rushan.Foundation.Messaging.Persistence;
 using System;
 using System.Threading.Tasks;
 
 namespace Rushan.Foundation.Messaging.Recieve
 {
     internal class Consumer : IConsumer
-    {        
-        private IModel _model;
+    {
+        private IModel _channel;
 
-        private readonly IChannelFactory _chanelFactory;
-        private readonly ISerializer _serializer;
+        private readonly IRabbitMQConnection _rabbitMQConnection;
+        private readonly IActivator _activator;        
         private readonly ILogger _logger;
         private readonly string _exchangeName;
+        private readonly ushort _qos;
         private readonly string _authLogin;
 
-        internal Consumer(MessagingConfiguration messagingConfiguration,
-            IChannelFactory chanelFactory,
-            ISerializer serializer,
-            ILogger logger)
+        internal Consumer(IRabbitMQConnection rabbitMQConnection,
+            IActivator activator,
+            ILogger logger,
+            string messageBrokerUri,
+            string exchangeName,
+            ushort qos)
         {
-            _chanelFactory = chanelFactory;
-            _serializer = serializer;
+            _rabbitMQConnection = rabbitMQConnection;
+            _activator = activator;
             _logger = logger;
-            _exchangeName = messagingConfiguration.Exchange;
-            _authLogin = ConnectionHelper.GetAuthUser(messagingConfiguration.MessageBrokerUri);
-        }        
+            
+            _authLogin = ConnectionHelper.GetAuthUser(messageBrokerUri);
+            _exchangeName = exchangeName;
+            _qos = qos;
+        }
 
         public void Subscribe(Subscriptor subscriptor)
         {
             var receiver = subscriptor.MessageReceiver;
             var messageTypes = subscriptor.MessageTypes;
 
-            var model = GetOrCreateModel();            
+            var model = GetOrCreateChannel();
 
             foreach (var messageType in messageTypes)
             {
                 var routingKey = messageType.FullName.ToLowerInvariant();
                 var queueName = QueueHelper.GetQueueName(receiver, _authLogin, routingKey);
-
+                                
                 model.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false);
-                
-                if (!string.IsNullOrEmpty(_exchangeName))
-                {
-                    model.ExchangeDeclare(_exchangeName, ExchangeType.Topic, durable: true);
-                }
-
                 model.QueueBind(queueName, _exchangeName, routingKey);
+
                 var consumer = new AsyncEventingBasicConsumer(model);
 
                 consumer.Received += async (sender, eventArgs) =>
                 {
-                    var body = eventArgs.Body;
-
                     try
                     {
-                        await InvokeMessageReceiverAsync(receiver, eventArgs);
+                        await InvokeMessageReceiverAsync(receiver, eventArgs.BasicProperties.Type, eventArgs.Body.ToArray());
 
                         model.BasicAck(eventArgs.DeliveryTag, false);
+                    }
+                    catch (MessageActivationException ex)
+                    {
+                        _logger.Error($"Message {ex.MessageTypeHint} could not be deserialized. Message will be removed from the queue.");
+
+                        model.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: false);
                     }
                     catch (Exception ex)
                     {
@@ -75,56 +79,37 @@ namespace Rushan.Foundation.Messaging.Recieve
         }
 
         public void StopSubscription()
-        {            
-            _model?.Dispose();
+        {
+            _channel?.Dispose();
         }
 
-        private IModel GetOrCreateModel()
+        private IModel GetOrCreateChannel()
         {
             while (true)
             {
-                if (_model == default)
+                if (_channel == default)
                 {
-                    _model = _chanelFactory.GetRabbitMQChannel();                    
+                    _channel = _rabbitMQConnection.GetConnection().CreateModel();
+                    _channel.ExchangeDeclare(_exchangeName, ExchangeType.Topic, durable: true);
+                    _channel.BasicQos(prefetchSize: 0, prefetchCount: _qos, global: false);
                 }
 
-                if (!_model.IsClosed)
+                if (!_channel.IsClosed)
                 {
-                    return _model;
+                    return _channel;
                 }
 
-                _model.Dispose();
+                _channel.Dispose();
             }
         }
 
-        
-
-        private async Task InvokeMessageReceiverAsync(IMessageReceiver messageReceiver, BasicDeliverEventArgs deliverEventArgs)
+        public async Task InvokeMessageReceiverAsync(IMessageReceiver messageReceiver, string messageTypeHint, byte[] messageContent)
         {
-            var messageType = Activator.GetType(deliverEventArgs.BasicProperties.Type);
-            var message = ExtractMessage(deliverEventArgs);
-            
-            var receiveMessageMethod = messageReceiver.GetType().GetMethod("ReceiveMessageAsync", new[] { messageType });
+            var message = _activator.CreateMessageInstance(messageTypeHint, messageContent);
 
-            await (Task) receiveMessageMethod.Invoke(messageReceiver, new object[] { message });
-        }
+            var messageHandler = _activator.CreateMessageHandler(messageTypeHint, messageReceiver);            
 
-        private object ExtractMessage(BasicDeliverEventArgs deliverEventArgs)
-        {
-            object message = null;
-            var typeHint = Activator.GetType(deliverEventArgs.BasicProperties.Type);
-            try
-            {
-                message = _serializer.Deserialize(deliverEventArgs.Body.ToArray(), typeHint);
-            }
-            catch
-            {
-                _logger?.Error($"Сообщение для типа {typeHint} не может быть десериализовано и будет удалено из очереди");
-
-                _model.BasicNack(deliverEventArgs.DeliveryTag, multiple: false, requeue: false);
-            }
-
-            return message;
+            await messageHandler(message);            
         }
     }
 }

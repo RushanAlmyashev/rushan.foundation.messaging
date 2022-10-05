@@ -1,39 +1,33 @@
-﻿using Moq;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using Rushan.Foundation.Messaging.Channel;
-using Rushan.Foundation.Messaging.Integration.Tests.Utils;
+using Rushan.Foundation.Messaging.Integration.Tests.RabbitMQDockering;
 using Rushan.Foundation.Messaging.Logger;
 using Rushan.Foundation.Messaging.Persistence;
 using System.Text;
 
-namespace Rushan.Foundation.Messaging.Integration.Tests.Chanel
+namespace Rushan.Foundation.Messaging.Integration.Tests.Persistence
 {
-    [Category("Integration")]    
+    [Category("Integration")]
     [NonParallelizable]
-    public class ChannelFactoryTests
-    {
-        private IChannelFactory _target;
-
-        private IRabbitMQConnection _rabbitMQConnection;
-        private Mock<ILogger> _logger;        
+    public class RabbitMQMessagingTests
+    {       
+        private IRabbitMQConnection _target;
+        private ILogger _logger;
 
         [OneTimeSetUp]
         public void Setup()
         {
-            _logger = new Mock<ILogger>();
+            _logger = new EmptyLogger();
             var connectionString = BrokerHelper.GetConnectionString();
-            ushort qos = 5;
 
-            _rabbitMQConnection = new RabbitMQConnectionPersistence(connectionString, _logger.Object);
-            _rabbitMQConnection.Start();
-            _target = new ChannelFactory(_rabbitMQConnection, qos);
+            _target = new RabbitMQConnectionPersistence(connectionString, _logger);
+            _target.Connect();           
         }
 
         [TearDown]
         public void TearDown()
         {
-            _rabbitMQConnection.Stop();
+            _target.Disconnect();
         }
 
         [Test]
@@ -42,7 +36,7 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Chanel
             var message = "Hello Istanbul";
             var actualMessage = string.Empty;
 
-            using (var channel = _target.GetRabbitMQChannel())
+            using (var channel = _target.GetConnection().CreateModel())
             {
                 channel.QueueDeclare(queue: "hello",
                                  durable: false,
@@ -55,10 +49,10 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Chanel
                 channel.BasicPublish(exchange: "",
                                  routingKey: "hello",
                                  basicProperties: null,
-                                 body: body);                           
+                                 body: body);
             }
 
-            using (var channel = _target.GetRabbitMQChannel())
+            using (var channel = _target.GetConnection().CreateModel())
             {
                 channel.QueueDeclare(queue: "hello",
                                      durable: false,
@@ -67,18 +61,15 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Chanel
                                      arguments: null);
 
                 var consumer = new AsyncEventingBasicConsumer(channel);
-                consumer.Received += async (model, ea)  =>
+                consumer.Received += async (model, ea) =>
                 {
                     var body = ea.Body.ToArray();
-                    actualMessage = Encoding.UTF8.GetString(body);           
+                    actualMessage = Encoding.UTF8.GetString(body);
                 };
 
-                channel.BasicConsume(queue: "hello",
-                                     autoAck: true,
-                                     consumer: consumer);
+                channel.BasicConsume(queue: "hello", autoAck: true, consumer: consumer);
 
-
-                await Task.Delay(DockerServiceHelper.AssertionBrokerDelayMs);                
+                await Task.Delay(DockerServiceHelper.AssertionBrokerDelayMs);
             }
 
             Assert.True(actualMessage.Equals(message));

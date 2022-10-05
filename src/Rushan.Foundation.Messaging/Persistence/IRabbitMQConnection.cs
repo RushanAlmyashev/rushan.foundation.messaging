@@ -12,11 +12,11 @@ namespace Rushan.Foundation.Messaging.Persistence
         /// <summary>
         /// Initialize connectinon Persistance
         /// </summary>
-        void Start();
+        void Connect();
 
         /// <summary>
         /// Dispose connection persistence
         /// </summary>
-        void Stop();
+        void Disconnect();
     }
 }

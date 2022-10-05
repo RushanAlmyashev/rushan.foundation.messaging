@@ -6,8 +6,15 @@ namespace Rushan.Foundation.Messaging.Helpers
 {
     public static class ApplicationHelper
     {
+        private static string _applicationName = string.Empty;
+
         public static string GetApplicationName()
         {
+            if (!string.IsNullOrEmpty(_applicationName))
+            {
+                return _applicationName;
+            }
+
             var entryAssembly =  Assembly.GetEntryAssembly();
 
             if (entryAssembly == null)
@@ -29,11 +36,16 @@ namespace Rushan.Foundation.Messaging.Helpers
                     version = versionInfo.FileVersion;
             }
 
-            var applicationName = version == null ?
+            _applicationName = version == null ?
                 versionInfo.ProductName :
                 $"{versionInfo.ProductName} v{version}";
 
-            return applicationName;
+            return _applicationName;
+        }
+
+        public static string GetMessagingVersion()
+        {
+            return Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
         }
     }
 }

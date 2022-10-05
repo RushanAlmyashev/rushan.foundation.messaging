@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Rushan.Foundation.Messaging.Configuration;
 
-namespace Rushan.Foundation.Messaging.Integration.Tests.Utils
+namespace Rushan.Foundation.Messaging.Integration.Tests.RabbitMQDockering
 {
     internal class BrokerHelper
     {
