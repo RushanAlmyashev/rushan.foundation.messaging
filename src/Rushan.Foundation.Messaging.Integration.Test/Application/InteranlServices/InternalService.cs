@@ -4,31 +4,31 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Application.InteranlServ
 {
     internal class InternalService : IInternalService
     {
+        private static List<MessageOne> _messageOnes = new();
+        private static List<MessageTwo> _messageTwos = new();
+        private static List<MessageThree> _messageThrees = new();
+
+        public List<MessageOne> MessageOnes => _messageOnes;
+        public List<MessageTwo> MessageTwos => _messageTwos;
+        public List<MessageThree> MessageThrees => _messageThrees;
+
         public async Task MessageHandlerAsync(MessageOne message)
         {
-            TestContext.WriteLine($"message.Id = {message.Id}");
-            TestContext.WriteLine($"message.Name = {message.Name}");
-            TestContext.WriteLine($"message.Key = {message.Key}");
-            TestContext.WriteLine($"message.Value = {message.Value}");
+            _messageOnes.Add(message);
 
             await Task.CompletedTask;
         }
 
         public async Task MessageHandlerAsync(MessageTwo message)
         {
-            TestContext.WriteLine($"message.Id = {message.MessageObject.Id}");
-            TestContext.WriteLine($"message.Name = {message.MessageObject.Name}");
+            _messageTwos.Add(message);
 
             await Task.CompletedTask;
         }
 
         public async Task MessageHandlerAsync(MessageThree message)
         {
-            TestContext.WriteLine($"message.Id = {message.Id}");
-            TestContext.WriteLine($"message.Name = {message.Name}");
-            TestContext.WriteLine($"message.Age = {message.Age}");
-            TestContext.WriteLine($"message.Date = {message.Date}");
-            TestContext.WriteLine($"message.Value = {message.Value}");
+            _messageThrees.Add(message);
 
             await Task.CompletedTask;
         }

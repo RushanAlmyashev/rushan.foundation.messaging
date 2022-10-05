@@ -6,19 +6,20 @@ using Rushan.Foundation.Messaging.Helpers;
 using Rushan.Foundation.Messaging.Logger;
 using Rushan.Foundation.Messaging.Persistence;
 using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 namespace Rushan.Foundation.Messaging.Recieve
 {
     internal class Consumer : IConsumer
     {
-        private IModel _channel;
+        private ConcurrentBag<IModel> _channels = new ConcurrentBag<IModel>();        
 
         private readonly IRabbitMQConnection _rabbitMQConnection;
         private readonly IActivator _activator;        
         private readonly ILogger _logger;
         private readonly string _exchangeName;
-        private readonly ushort _qos;
+        private readonly ushort _fetchCount;
         private readonly string _authLogin;
 
         internal Consumer(IRabbitMQConnection rabbitMQConnection,
@@ -26,7 +27,7 @@ namespace Rushan.Foundation.Messaging.Recieve
             ILogger logger,
             string messageBrokerUri,
             string exchangeName,
-            ushort qos)
+            ushort fetchCount)
         {
             _rabbitMQConnection = rabbitMQConnection;
             _activator = activator;
@@ -34,18 +35,20 @@ namespace Rushan.Foundation.Messaging.Recieve
             
             _authLogin = ConnectionHelper.GetAuthUser(messageBrokerUri);
             _exchangeName = exchangeName;
-            _qos = qos;
+            _fetchCount = fetchCount;
         }
 
-        public void Subscribe(Subscriptor subscriptor)
+        public void StartSubscriptionInvokation(Subscriptor subscriptor)
         {
             var receiver = subscriptor.MessageReceiver;
             var messageTypes = subscriptor.MessageTypes;
 
-            var model = GetOrCreateChannel();
-
+            
             foreach (var messageType in messageTypes)
             {
+                var model = CreateChannel();
+
+
                 var routingKey = messageType.FullName.ToLowerInvariant();
                 var queueName = QueueHelper.GetQueueName(receiver, _authLogin, routingKey);
                                 
@@ -74,34 +77,40 @@ namespace Rushan.Foundation.Messaging.Recieve
                     }
                 };
 
-                model.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
+                var consumerTag = model.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
+
+                _logger?.Info($"Reciever '{receiver.GetType().FullName}' is connected to the queue: '{queueName}' for consume message type: '{messageType.FullName}' with routingKey: '{routingKey}' and consumerTag: '{consumerTag}'");
             }
         }
 
-        public void StopSubscription()
+        public void StopSubscriptionInvocation()
         {
-            _channel?.Dispose();
+            foreach (var channel in _channels)
+            {
+                channel.Dispose();
+            }          
         }
 
-        private IModel GetOrCreateChannel()
+        private IModel CreateChannel()
         {
+            IModel channel;
+
             while (true)
             {
-                if (_channel == default)
+                channel = _rabbitMQConnection.GetConnection().CreateModel();
+                channel.ExchangeDeclare(_exchangeName, ExchangeType.Topic, durable: true);
+                channel.BasicQos(prefetchSize: 0, prefetchCount: _fetchCount, global: false);
+
+                if (channel.IsOpen)
                 {
-                    _channel = _rabbitMQConnection.GetConnection().CreateModel();
-                    _channel.ExchangeDeclare(_exchangeName, ExchangeType.Topic, durable: true);
-                    _channel.BasicQos(prefetchSize: 0, prefetchCount: _qos, global: false);
+                    _channels.Add(channel);
+                    
+                    return channel;
                 }
 
-                if (!_channel.IsClosed)
-                {
-                    return _channel;
-                }
-
-                _channel.Dispose();
+                channel.Dispose();
             }
-        }
+        }        
 
         public async Task InvokeMessageReceiverAsync(IMessageReceiver messageReceiver, string messageTypeHint, byte[] messageContent)
         {

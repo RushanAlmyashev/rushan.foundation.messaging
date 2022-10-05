@@ -6,7 +6,7 @@ using Rushan.Foundation.Messaging.Persistence;
 namespace Rushan.Foundation.Messaging.Integration.Tests.Persistence
 {
     [Category("Integration")]
-    [Category("LongRunning")]
+    [Category("LongRunning")]    
     [NonParallelizable]
     public class RabbitMQPersistenceTests
     {
@@ -40,6 +40,7 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Persistence
         }
 
         [Test]
+        [Ignore("Integration broke MQ brocker")]
         public async Task WhenBrockerRestarted_ConnectionRestored()
         {
             var actualBeforeWaiting = _target.GetConnection().IsOpen;

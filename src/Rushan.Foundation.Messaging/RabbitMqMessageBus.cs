@@ -11,14 +11,14 @@ using System.Collections.Generic;
 
 namespace Rushan.Foundation.Messaging
 {
-    public class RabbitMqMessageBus
+    public class RabbitMqMessageBus: IMessaging
     {
         private BusState _state = BusState.Stopped;
 
         private readonly IRabbitMQConnection _rabbitMQConnection;        
-        private readonly IActivator _activator;
-
+        
         private readonly ISerializer _serializer;
+        private readonly IActivator _activator;
         private readonly ILogger _logger;
 
         private readonly IPublisher _publisher;
@@ -32,7 +32,7 @@ namespace Rushan.Foundation.Messaging
         {
             var messageBrokerUri = Environment.ExpandEnvironmentVariables(messagingConfiguration.MessageBrokerUri);
             var exchange = Environment.ExpandEnvironmentVariables(messagingConfiguration.Exchange);
-            var qos = messagingConfiguration.Qos;
+            var fetchCount = messagingConfiguration.FetchCount;
 
             _logger = logger ?? new EmptyLogger();
             _serializer = serializer ?? new JsonMessageSerializer();
@@ -41,7 +41,7 @@ namespace Rushan.Foundation.Messaging
             _rabbitMQConnection = new RabbitMQConnectionPersistence(messageBrokerUri, _logger);           
             
             _publisher = new Publisher(_rabbitMQConnection, _serializer, _logger, exchange);
-            _consumer = new Consumer(_rabbitMQConnection, _activator, _logger, messageBrokerUri, exchange, qos);
+            _consumer = new Consumer(_rabbitMQConnection, _activator, _logger, messageBrokerUri, exchange, fetchCount);
         }
 
         public void Publish<TMessage>(TMessage message)
@@ -49,7 +49,7 @@ namespace Rushan.Foundation.Messaging
             _publisher.Publish(message);
         }
 
-        public void Subscribe<TMessage>(IMessageReceiver<TMessage> receiver)
+        public void Subscribe(IMessageReceiver receiver)
         {
             if (receiver == null)
             {
@@ -71,7 +71,7 @@ namespace Rushan.Foundation.Messaging
             }
             
             _rabbitMQConnection.Connect();
-            StartSubscriptionsInvokation();
+            StartSubscriptionsInvocation();
             
             _state = BusState.Started;
             _logger.Info($"RabbitMQ client in state: {_state}");
@@ -86,7 +86,7 @@ namespace Rushan.Foundation.Messaging
                 return;
             }
 
-            _consumer.StopSubscription();
+            _consumer.StopSubscriptionInvocation();
             _rabbitMQConnection.Disconnect();
 
             _state = BusState.Stopped;
@@ -94,11 +94,11 @@ namespace Rushan.Foundation.Messaging
         }
 
 
-        public void StartSubscriptionsInvokation()
+        private void StartSubscriptionsInvocation()
         {
-            for (var i = 0; i < _subscriptions.Count; i++)
+            foreach(var subscription in _subscriptions)
             {
-                _consumer.Subscribe(_subscriptions[i]);
+                _consumer.StartSubscriptionInvokation(subscription);
             }
         }
     }

@@ -8,6 +8,6 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Application.InteranlServ
 
         Task MessageHandlerAsync(MessageTwo message);
 
-        Task MessageHandlerAsync(MessageThree message);
+        Task MessageHandlerAsync(MessageThree message);        
     }
 }

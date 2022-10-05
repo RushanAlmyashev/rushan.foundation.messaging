@@ -12,8 +12,7 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Publish
     public class PublishLoadTests
     {
         private Publisher _target;
-
-        //private Autofac.IContainer _container;
+        
         private const int NumberOfMessages = 100;
         private Fixture _fixture;
        
@@ -42,28 +41,10 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Publish
             
 
             _target = new Publisher(_rabbitMQConnection, _serializer, _logger, _exchange);
-
-
-
-            //var builder = new ContainerBuilder();
-
-            //builder.Register(ctx => new InternalService()).As<IInternalService>();
-            //builder.Register(ctx => new FirstReciver(ctx.Resolve<IInternalService>()))
-            //    .AsImplementedInterfaces()
-            //    .InstancePerLifetimeScope();
-
-            //builder.Register(ctx => new SecondReciever(ctx.Resolve<IInternalService>()))
-            //    .AsImplementedInterfaces()
-            //    .InstancePerLifetimeScope();
-
-            //builder.Register(ctx => new IPublisher())
-
-            //_container = builder.Build();
-
-
         }
 
         [Test]
+        [Ignore("Not intresting message sent to queue")]
         public void WhenCallPusblishInParallel_ShouldNotThrow()
         {
             var message = _fixture.Create<MessageTwo>();

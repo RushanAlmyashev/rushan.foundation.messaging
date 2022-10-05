@@ -14,8 +14,6 @@ namespace Rushan.Foundation.Messaging.Integration.Tests.Application.Recievers
 
         public async Task ReceiveMessageAsync(MessageThree message)
         {
-            TestContext.WriteLine($"recieved message {nameof(MessageThree)}");
-
             await _internalService.MessageHandlerAsync(message);
         }
     }

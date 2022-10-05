@@ -2,8 +2,8 @@
 {
     internal interface IConsumer
     {
-        void Subscribe(Subscriptor subscriptor);
+        void StartSubscriptionInvokation(Subscriptor subscriptor);
 
-        void StopSubscription();        
+        void StopSubscriptionInvocation();        
     }
 }
