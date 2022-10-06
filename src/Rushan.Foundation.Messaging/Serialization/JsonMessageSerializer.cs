@@ -3,7 +3,7 @@ using System;
 
 namespace Rushan.Foundation.Messaging.Serialization
 {
-    public class JsonMessageSerializer : ISerializer
+    internal class JsonMessageSerializer : ISerializer
     {        
         private static readonly System.Text.Json.JsonSerializerOptions _textJsonSettings = JsonSerializerSettings.GetTextJsonSerializerSettings();
 

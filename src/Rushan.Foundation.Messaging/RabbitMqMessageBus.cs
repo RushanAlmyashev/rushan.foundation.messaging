@@ -11,6 +11,7 @@ using System.Collections.Generic;
 
 namespace Rushan.Foundation.Messaging
 {
+
     public class RabbitMqMessageBus: IMessaging
     {
         private BusState _state = BusState.Stopped;

@@ -8,6 +8,7 @@ using System;
 
 namespace Rushan.Foundation.Messaging.Publish
 {
+    /// <inheritdoc />
     internal class Publisher : IPublisher
     {
         private const byte DELIVERY_MODE = (byte)DeliveryMode.Persistent;
@@ -28,6 +29,7 @@ namespace Rushan.Foundation.Messaging.Publish
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public void Publish<TMessage>(TMessage message)
         {
             using (var channel = _rabbitMQConnection.GetConnection().CreateModel())
@@ -39,8 +41,7 @@ namespace Rushan.Foundation.Messaging.Publish
                 properties.ContentType = _serializer.ContentType;
                 properties.DeliveryMode = DELIVERY_MODE;
                 properties.Type = message.GetType().FullName;
-                properties.AppId = ApplicationHelper.GetApplicationName();
-                properties.CorrelationId = Guid.NewGuid().ToString();
+                properties.AppId = ApplicationHelper.GetApplicationName();                
 
                 try
                 {

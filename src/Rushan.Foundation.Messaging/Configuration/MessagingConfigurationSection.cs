@@ -19,6 +19,6 @@
         /// Prefetch messages, for improve performance
         /// For more information https://www.rabbitmq.com/amqp-0-9-1-reference.html
         /// </summary>
-        public ushort FetchCount { get; set; } = 5;        
+        public ushort FetchCount { get; set; } = 5;
     }
 }

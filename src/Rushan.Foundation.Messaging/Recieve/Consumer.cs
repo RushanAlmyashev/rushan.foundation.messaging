@@ -51,7 +51,7 @@ namespace Rushan.Foundation.Messaging.Recieve
 
                 var routingKey = messageType.FullName.ToLowerInvariant();
                 var queueName = QueueHelper.GetQueueName(receiver, _authLogin, routingKey);
-                                
+                     
                 model.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false);
                 model.QueueBind(queueName, _exchangeName, routingKey);
 
@@ -79,7 +79,7 @@ namespace Rushan.Foundation.Messaging.Recieve
 
                 var consumerTag = model.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
 
-                _logger?.Info($"Reciever '{receiver.GetType().FullName}' is connected to the queue: '{queueName}' for consume message type: '{messageType.FullName}' with routingKey: '{routingKey}' and consumerTag: '{consumerTag}'");
+                _logger.Info($"Reciever '{receiver.GetType().FullName}' is connected to the queue: '{queueName}' for consume message type: '{messageType.FullName}' with routingKey: '{routingKey}' and consumerTag: '{consumerTag}'");
             }
         }
 

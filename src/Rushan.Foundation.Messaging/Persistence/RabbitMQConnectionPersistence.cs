@@ -13,9 +13,7 @@ using System.Threading;
 
 namespace Rushan.Foundation.Messaging.Persistence
 {
-    /// <summary>
-    /// Provide persistant connection to rabbitMQ bus
-    /// </summary>
+    /// <inheritdoc />
     internal class RabbitMQConnectionPersistence : IRabbitMQConnection
     {
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
@@ -28,8 +26,6 @@ namespace Rushan.Foundation.Messaging.Persistence
         private IAutorecoveringConnection _connection = null;
 
 
-        internal RabbitMQConnectionPersistence() { }
-
         public RabbitMQConnectionPersistence(string messageBrokerUri, ILogger logger)
         {
             _logger = logger;
@@ -38,24 +34,27 @@ namespace Rushan.Foundation.Messaging.Persistence
 
         private bool IsConnected => _connection != default
                                     && _connection.IsOpen;
-            
+
+        /// <inheritdoc />
         public IConnection GetConnection()
         {
             if (!IsConnected)
             {
-                EstabilishConnectWithRabbitMQ();
+                EstablishConnectWithRabbitMQ();
             }
 
             return _connection;
         }
 
+        /// <inheritdoc />
         public void Connect()
         {
-            EstabilishConnectWithRabbitMQ();
+            EstablishConnectWithRabbitMQ();
 
             _connectionState = ConnectionState.Connected;
         }
 
+        /// <inheritdoc />
         public void Disconnect()
         {
             _connection.Close();
@@ -65,7 +64,10 @@ namespace Rushan.Foundation.Messaging.Persistence
         }
 
 
-        private void EstabilishConnectWithRabbitMQ()
+        /// <summary>
+        /// Establish connection
+        /// </summary>
+        private void EstablishConnectWithRabbitMQ()
         {
             if (_connectionState == ConnectionState.Disconnected)
             {
@@ -101,7 +103,9 @@ namespace Rushan.Foundation.Messaging.Persistence
             }            
         }
 
-        
+        /// <summary>
+        /// Connect to rabbitMQ broker
+        /// </summary>
         private void ConnectToRabbitMQ()
         {
             var retryDelays = Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), MAX__CONNECTION_RETRY_COUNT);
@@ -132,6 +136,9 @@ namespace Rushan.Foundation.Messaging.Persistence
             return;            
         }
 
+        /// <summary>
+        /// Waiting cycle, for recovering connect
+        /// </summary>        
         private void AwaitAutorecoveryComplete()
         {
             var maxRetryDelay = TimeSpan.FromSeconds(3);
@@ -153,6 +160,7 @@ namespace Rushan.Foundation.Messaging.Persistence
                 throw new Exception("Connection recover operation has been failed");
             }
         }
+
 
         private IConnectionFactory GetConnectionFactory(string messageBrokerUri)
         {

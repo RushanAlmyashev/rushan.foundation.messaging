@@ -13,7 +13,7 @@ namespace Rushan.Foundation.Messaging.Activator
         /// </summary>
         /// <param name="messageTypeHint">message hint, which consist full message type</param>
         /// <param name="messageContent">conent of the message</param>
-        /// <returns></returns>
+        /// <returns>Generated message instance, based by instruction</returns>
         public object CreateMessageInstance(string messageTypeHint, byte[] messageContent);
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace Rushan.Foundation.Messaging.Activator
         /// </summary>
         /// <param name="messageTypeHint">message hint, which consist full message type</param>
         /// <param name="receiver">reciever class</param>
-        /// <returns></returns>
+        /// <returns>Returns message handlers func.</returns>
         public Func<object, Task> CreateMessageHandler(string messageTypeHint, IMessageReceiver receiver);
     }
 }

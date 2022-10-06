@@ -4,11 +4,16 @@ using System.Reflection;
 
 namespace Rushan.Foundation.Messaging.Helpers
 {
-    public static class ApplicationHelper
+    internal static class ApplicationHelper
     {
         private static string _applicationName = string.Empty;
+        private static string _messagingVersion = string.Empty;
 
-        public static string GetApplicationName()
+        /// <summary>
+        /// Get an executed product name
+        /// </summary>
+        /// <returns>application name</returns>
+        internal static string GetApplicationName()
         {
             if (!string.IsNullOrEmpty(_applicationName))
             {
@@ -18,7 +23,9 @@ namespace Rushan.Foundation.Messaging.Helpers
             var entryAssembly =  Assembly.GetEntryAssembly();
 
             if (entryAssembly == null)
+            {
                 return null;
+            }
 
             string version = null;
 
@@ -29,11 +36,12 @@ namespace Rushan.Foundation.Messaging.Helpers
                     SingleOrDefault();
 
             if (assemblyInformationalVersion != null)
-                version = assemblyInformationalVersion.InformationalVersion;
-            else
             {
-                if (!string.IsNullOrWhiteSpace(versionInfo.FileVersion))
-                    version = versionInfo.FileVersion;
+                version = assemblyInformationalVersion.InformationalVersion;
+            }
+            else if(!string.IsNullOrWhiteSpace(versionInfo.FileVersion))
+            {
+                version = versionInfo.FileVersion;
             }
 
             _applicationName = version == null ?
@@ -43,9 +51,20 @@ namespace Rushan.Foundation.Messaging.Helpers
             return _applicationName;
         }
 
-        public static string GetMessagingVersion()
+        /// <summary>
+        /// Get Version of current Messaging assembly
+        /// </summary>
+        /// <returns>Get Messaging Version</returns>
+        internal static string GetMessagingVersion()
         {
-            return Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
+            if (!string.IsNullOrEmpty(_messagingVersion))
+            {
+                return _messagingVersion;
+            }
+
+            _messagingVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
+
+            return _messagingVersion;
         }
     }
 }

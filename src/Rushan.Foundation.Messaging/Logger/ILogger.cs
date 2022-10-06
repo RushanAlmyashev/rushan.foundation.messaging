@@ -2,6 +2,9 @@
 
 namespace Rushan.Foundation.Messaging.Logger
 {
+    /// <summary>
+    /// Logger interface, for log an events
+    /// </summary>
     public interface ILogger
     {
         void Info(string message);

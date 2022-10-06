@@ -2,6 +2,9 @@
 
 namespace Rushan.Foundation.Messaging.Persistence
 {
+    /// <summary>
+    /// Provide connection to rabbitMQ bus
+    /// </summary>
     internal interface IRabbitMQConnection
     {
         /// <summary>

@@ -1,5 +1,8 @@
 ﻿namespace Rushan.Foundation.Messaging.Helpers
 {
+    /// <summary>
+    /// Helper, for gettting connection credential
+    /// </summary>
     internal static class ConnectionHelper
     {
         internal static string GetAuthUser(string messageBrokerUri)

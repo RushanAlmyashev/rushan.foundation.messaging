@@ -8,13 +8,22 @@ using System.Threading.Tasks;
 
 namespace Rushan.Foundation.Messaging.Activator
 {
+    /// <inheritdoc />
     internal class Activator : IActivator
     {
+        /// <summary>
+        /// Dictioanary of activated message types, for improve performance
+        /// </summary>
         private static readonly ConcurrentDictionary<string, Type> TypeMapCache = new ConcurrentDictionary<string, Type>();
 
         private readonly ISerializer _serializer;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initialize Activator constructor
+        /// </summary>
+        /// <param name="serializer">serializer for deserialize message</param>
+        /// <param name="logger">logger</param>
         public Activator(ISerializer serializer, ILogger logger)
         {
             _serializer = serializer;
@@ -22,6 +31,7 @@ namespace Rushan.Foundation.Messaging.Activator
         }
 
 
+        /// <inheritdoc />
         public object CreateMessageInstance(string messageTypeHint, byte[] messageContent)
         {
             var messageType = GetType(messageTypeHint);
@@ -44,7 +54,7 @@ namespace Rushan.Foundation.Messaging.Activator
             }            
         }
 
-
+        /// <inheritdoc />
         public Func<object, Task> CreateMessageHandler(string messageTypeHint, IMessageReceiver receiver)
         {
             var messageType = GetType(messageTypeHint);
@@ -54,7 +64,11 @@ namespace Rushan.Foundation.Messaging.Activator
             return message => (Task) receiveMessageMethod.Invoke(receiver, new object[] { message });
         }
 
-
+        /// <summary>
+        /// Get type, from type hint
+        /// </summary>
+        /// <param name="typeHint">typeHint. Should contains full message name</param>
+        /// <returns>Concrete type by typeHint</returns>
         private static Type GetType(string typeHint)
         {
             if (string.IsNullOrWhiteSpace(typeHint))
