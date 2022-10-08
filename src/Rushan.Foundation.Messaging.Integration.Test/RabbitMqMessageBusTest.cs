@@ -17,7 +17,7 @@ namespace Rushan.Foundation.Messaging.Integration.Tests
         private const int NumberOfMessageTwo = 7322;
         private const int NumberOfMessageThree = 100000;
 
-        private RabbitMqMessageBus _target;
+        private RabbitMqMessaging _target;
 
         private IContainer _container;
         private Fixture _fixture;
@@ -38,7 +38,7 @@ namespace Rushan.Foundation.Messaging.Integration.Tests
                 Exchange = BrokerConstants.ExchangeName
             };
 
-            _target = new RabbitMqMessageBus(_messagingConfiguration);
+            var messaging = new RabbitMqMessaging(_messagingConfiguration);
 
             var builder = new ContainerBuilder();
 
@@ -62,25 +62,26 @@ namespace Rushan.Foundation.Messaging.Integration.Tests
         [TearDown]
         public void TearDown()
         {
-            var messaging = _container.Resolve<RabbitMqMessageBus>();
-            
-            messaging.StopMessageBus();
+            var messaging = _container.Resolve<RabbitMqMessaging>();
+
+            messaging.Stop();
             _container.Dispose();
         }
 
         [Test]
         public void WhenParallelSendDifferentMessages_SameMessageAreRecievedWithWriteSequences()
         {
+
             var internlService = _container.Resolve<InternalService>();
-            var recievers =  _container.Resolve<IEnumerable<IMessageReceiver>>();
-            var messaging = _container.Resolve<RabbitMqMessageBus>();
+            var recievers = _container.Resolve<IEnumerable<IMessageReceiver>>();
+            var messaging = _container.Resolve<RabbitMqMessaging>();
 
             foreach (var reciever in recievers)
             {
                 messaging.Subscribe(reciever);
             }
 
-            messaging.StartMessageBus();
+            messaging.Start();
 
             var expectedMessageOnes = _fixture.CreateMany<MessageOne>(NumberOfMessageOne).ToArray();
             var expectedMessageTwos = _fixture.CreateMany<MessageTwo>(NumberOfMessageTwo).ToArray();
@@ -98,7 +99,7 @@ namespace Rushan.Foundation.Messaging.Integration.Tests
             var actualMessageTwos = internlService.MessageTwos.ToArray();
             var actualMessageThrees = internlService.MessageThrees.ToArray();
 
-            Assert.That(actualMessageOnes.Length, Is.EqualTo(expectedMessageOnes.Length));            
+            Assert.That(actualMessageOnes.Length, Is.EqualTo(expectedMessageOnes.Length));
             for (int i = 0; i < actualMessageOnes.Length; i++)
             {
                 Assert.That(actualMessageOnes[i], Is.EqualTo(expectedMessageOnes[i]));
@@ -120,7 +121,7 @@ namespace Rushan.Foundation.Messaging.Integration.Tests
 
         private void SendCollectionMessageOne(IMessaging messaging, MessageOne[] messages)
         {
-            foreach(var message in messages)
+            foreach (var message in messages)
             {
                 messaging.Publish(message);
             }
@@ -143,3 +144,4 @@ namespace Rushan.Foundation.Messaging.Integration.Tests
         }
     }
 }
+

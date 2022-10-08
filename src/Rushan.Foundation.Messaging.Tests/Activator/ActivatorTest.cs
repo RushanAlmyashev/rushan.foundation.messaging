@@ -28,7 +28,7 @@ namespace Rushan.Foundation.Messaging.Tests.Activator
             _logger = new Mock<ILogger>();
             _serializer = new JsonMessageSerializer();
 
-            _target = new Messaging.Activator.Activator(_serializer, _logger.Object);
+            _target = new Foundation.Messaging.Activator.Activator(_serializer, _logger.Object);
         }
 
         [Test]

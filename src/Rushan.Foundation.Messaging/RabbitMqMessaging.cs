@@ -12,7 +12,7 @@ using System.Collections.Generic;
 namespace Rushan.Foundation.Messaging
 {
 
-    public class RabbitMqMessageBus: IMessaging
+    public class RabbitMqMessaging: IMessaging
     {
         private BusState _state = BusState.Stopped;
 
@@ -25,9 +25,9 @@ namespace Rushan.Foundation.Messaging
         private readonly IPublisher _publisher;
         private readonly IConsumer _consumer;
 
-        private readonly List<Subscriptor> _subscriptions = new();
+        private readonly List<Subscriptor> _subscriptions = new List<Subscriptor>();
 
-        public RabbitMqMessageBus(MessagingConfiguration messagingConfiguration,
+        public RabbitMqMessaging(MessagingConfiguration messagingConfiguration,
             ILogger logger = null,
             ISerializer serializer = null)
         {
@@ -63,7 +63,7 @@ namespace Rushan.Foundation.Messaging
         }
 
 
-        public void StartMessageBus()
+        public void Start()
         {
             if (_state == BusState.Started)
             {
@@ -79,7 +79,7 @@ namespace Rushan.Foundation.Messaging
         }
 
 
-        public void StopMessageBus()
+        public void Stop()
         {
             if (_state == BusState.Stopped)
             {
