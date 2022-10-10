@@ -38,7 +38,7 @@ namespace Rushan.Foundation.Messaging.Integration.Tests
                 Exchange = BrokerConstants.ExchangeName
             };
 
-            var messaging = new RabbitMqMessaging(_messagingConfiguration);
+            var _target = new RabbitMqMessaging(_messagingConfiguration);
 
             var builder = new ContainerBuilder();
 
